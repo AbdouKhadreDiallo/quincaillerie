@@ -8,7 +8,18 @@ use App\Repository\ClientRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *          collectionOperations={
+ *            "GET", "POST" = {
+ *                  "security" = "is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERUSER')",
+ *             },
+ *      },
+ *      itemOperations = {
+ *          "GET", "PUT", "DELETE" = {
+ *              "security" = "is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERUSER')",
+ *          }
+ *      }
+ * )
  * @ORM\Entity(repositoryClass=ClientRepository::class)
  */
 class Client extends User
@@ -24,6 +35,13 @@ class Client extends User
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $adress;
+
+    /**
+     * @ORM\OneToOne(targetEntity=Compte::class, mappedBy="proprio", cascade={"persist", "remove"})
+     */
+    private $compte;
+
+   
 
     public function getId(): ?int
     {
@@ -41,4 +59,23 @@ class Client extends User
 
         return $this;
     }
+
+    public function getCompte(): ?Compte
+    {
+        return $this->compte;
+    }
+
+    public function setCompte(Compte $compte): self
+    {
+        // set the owning side of the relation if necessary
+        if ($compte->getProprio() !== $this) {
+            $compte->setProprio($this);
+        }
+
+        $this->compte = $compte;
+
+        return $this;
+    }
+
+    
 }

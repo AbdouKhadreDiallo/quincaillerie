@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Compte;
+use DateTimeImmutable;
 use App\Service\UserService;
 use App\Repository\UserRepository;
 use App\Repository\ProfilRepository;
@@ -45,6 +47,14 @@ class UserController extends AbstractController
         return $this->add("App\Entity\Admin", $request);
     }
     /**
+     * @Route("/api/clients", methods={"POST"})
+     * 
+     */
+    public function addClients(Request $request)
+    {
+        return $this->add("App\Entity\Client", $request);
+    }
+    /**
      * @Route("/api/admins/{id}", methods={"POST"})
      * 
     */
@@ -57,7 +67,13 @@ class UserController extends AbstractController
     {
         $user = $request->request->all();
         $avatar = $request->files->get("avatar"); 
-             
+        
+        if ($user["compte"]) {
+            $withCompte = $user["compte"];
+            unset($user["compte"]);
+        }
+        
+        
         //on ouvre le fichier et on le lit en format binaire
         // $avatar = fopen($avatar->getRealPath(), 'rb');
         // $user["avatar"]=$avatar;
@@ -76,12 +92,26 @@ class UserController extends AbstractController
             $user->setAvatar($this->uploadfile($avatar, 'avatar'));
         }
         $user->setProfil($this->assign_Profil($entite));
+
+        // if the user is a client 
+        if ($this->assign_Profil($entite)->getLibelle() == "Client") {
+            if (isset($withCompte) && $withCompte=="oui") {
+                $date = new \DateTimeImmutable();
+                $compte = new Compte();
+                $compte->setProprio($user);
+                $compte->setMontant(0);
+                $compte->setCreatedAt($date);
+                $compte->setNumeroCompte("AZER");
+                $this->manager->persist($compte);
+                $user->setCompte($compte);
+            }
+        }
         $user->setRoles($user->getRoles());
         $user->setPassword($this->encoder->hashPassword($user,"password"));
         $this->manager->persist($user);
         $this->manager->flush();
         // fclose($avatar);
-        return new JsonResponse("Créé avec success",Response::HTTP_CREATED,[],true);
+        return new JsonResponse("done with sucess",Response::HTTP_CREATED,[]);
     }
 
     public function uploadfile($file, $name)
