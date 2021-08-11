@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Admin;
 use App\Entity\Compte;
 use DateTimeImmutable;
 use App\Entity\Magasin;
@@ -65,6 +66,14 @@ class UserController extends AbstractController
         return $this->updateUser("App\Entity\Admin", $request, $id);
     }
 
+    /**
+     * @Route("/api/clients/{id}", methods={"POST"})
+     * 
+    */
+    public function updateClient($id, Request $request){
+        return $this->updateUser("App\Entity\Admin", $request, $id);
+    }
+
     
     public function add($entite, $request)
     {
@@ -96,6 +105,14 @@ class UserController extends AbstractController
         }
         $user->setProfil($this->assign_Profil($entite));
 
+        if ($this->assign_Profil($entite)->getLibelle() == "Admin") {
+            $magasin = new Magasin();
+            $magasin->setName("quincaillerie-".$user->getUsername());
+            $magasin->setAddedBy($this->tokenStorage->getToken()->getUser());
+            $magasin->setOwner($user);
+            $this->manager->persist($magasin);
+            $user->setMagasin($magasin);
+        }
         // if the user is a client 
         if ($this->assign_Profil($entite)->getLibelle() == "Client") {
             if (isset($withCompte) && $withCompte=="oui") {
@@ -105,18 +122,18 @@ class UserController extends AbstractController
                 $compte->setMontant(0);
                 $compte->setCreatedAt($date);
                 $compte->setNumeroCompte("AZER");
+                //dd($this->tokenStorage->getToken()->getUser() instanceof Admin);
+                if ($this->tokenStorage->getToken()->getUser() instanceof Admin) {
+                    // dd('we are here');
+                    $user->setMagasin($this->tokenStorage->getToken()->getUser()->getMagasin());
+                }
+                // dd("teub");
                 $this->manager->persist($compte);
                 $user->setCompte($compte);
             }
         }
-        if ($this->assign_Profil($entite)->getLibelle() == "Admin") {
-            $magasin = new Magasin();
-            $magasin->setName("quincaillerie-".$user->getUsername());
-            $magasin->setAddedBy($this->tokenStorage->getToken()->getUser());
-            $magasin->setOwner($user);
-            $this->manager->persist($magasin);
-            $user->setMagasin($magasin);
-        }
+        
+
         $user->setRoles($user->getRoles());
         $user->setPassword($this->encoder->hashPassword($user,"password"));
         $this->manager->persist($user);
