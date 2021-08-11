@@ -41,6 +41,11 @@ class Client extends User
      */
     private $compte;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Magasin::class, inversedBy="clients")
+     */
+    private $magasin;
+
    
 
     public function getId(): ?int
@@ -73,6 +78,18 @@ class Client extends User
         }
 
         $this->compte = $compte;
+
+        return $this;
+    }
+
+    public function getMagasin(): ?Magasin
+    {
+        return $this->magasin;
+    }
+
+    public function setMagasin(?Magasin $magasin): self
+    {
+        $this->magasin = $magasin;
 
         return $this;
     }

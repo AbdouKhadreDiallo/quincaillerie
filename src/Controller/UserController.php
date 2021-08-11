@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Compte;
 use DateTimeImmutable;
+use App\Entity\Magasin;
 use App\Service\UserService;
 use App\Repository\UserRepository;
 use App\Repository\ProfilRepository;
@@ -17,6 +18,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class UserController extends AbstractController
 {
@@ -28,8 +30,8 @@ class UserController extends AbstractController
     private $validator;
     private $profilRepository;
     private $manager;
-
-    public function __construct(UserPasswordHasherInterface $encoder,  SerializerInterface $serializer, UserRepository $repository, EntityManagerInterface $manager,ProfilRepository $profilRepository, ValidatorInterface $validator){
+    private $tokenStorage;
+    public function __construct(UserPasswordHasherInterface $encoder,TokenStorageInterface $tokenStorage,  SerializerInterface $serializer, UserRepository $repository, EntityManagerInterface $manager,ProfilRepository $profilRepository, ValidatorInterface $validator){
         $this->encoder = $encoder;
         // $this->userService = $userService;
         $this->serializer = $serializer;
@@ -37,6 +39,7 @@ class UserController extends AbstractController
         $this->validator = $validator;
         $this->manager = $manager;
         $this->profilRepository = $profilRepository;
+        $this->tokenStorage = $tokenStorage;
     }
     /**
      * @Route("/api/admins", methods={"POST"})
@@ -68,7 +71,7 @@ class UserController extends AbstractController
         $user = $request->request->all();
         $avatar = $request->files->get("avatar"); 
         
-        if ($user["compte"]) {
+        if (isset($user["compte"])) {
             $withCompte = $user["compte"];
             unset($user["compte"]);
         }
@@ -105,6 +108,14 @@ class UserController extends AbstractController
                 $this->manager->persist($compte);
                 $user->setCompte($compte);
             }
+        }
+        if ($this->assign_Profil($entite)->getLibelle() == "Admin") {
+            $magasin = new Magasin();
+            $magasin->setName("quincaillerie-".$user->getUsername());
+            $magasin->setAddedBy($this->tokenStorage->getToken()->getUser());
+            $magasin->setOwner($user);
+            $this->manager->persist($magasin);
+            $user->setMagasin($magasin);
         }
         $user->setRoles($user->getRoles());
         $user->setPassword($this->encoder->hashPassword($user,"password"));
