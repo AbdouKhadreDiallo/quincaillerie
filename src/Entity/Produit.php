@@ -12,6 +12,11 @@ use Doctrine\ORM\Mapping as ORM;
  *            "GET", "POST" = {
  *                  "security" = "is_granted('ROLE_ADMIN')",
  *             },
+ *              "ajout_fileExcel"={
+ *                  "security" = "is_granted('ROLE_ADMIN')",
+ *                  "method"="POST",
+ *                  "route_name"="xlsx"
+ *              }
  *      },
  *      itemOperations = {
  *          "GET", "PUT", "DELETE" = {

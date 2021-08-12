@@ -13,7 +13,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProduitController extends AbstractController
 {
@@ -48,14 +50,44 @@ class ProduitController extends AbstractController
         $produit->setPrixUnitaire($prixUnitaire);
         $produit->setQuantite($quantite);
         $produit->setDescription($request->request->all()["description"]);
-        // $produit = $this->serializer->denormalize($request->request->all(),"App\Entity\Produit");
         $image = $request->files->get("image");
         if (!is_null($request->files->get("image"))) {
+            // dd("yes");
             $produit->setImage($this->uploadfile($request->files->get("image"), $produit->getName()));
         }
         $produit->setAddedBy($this->tokenStorage->getToken()->getUser());
         $produit->setMagasin($this->tokenStorage->getToken()->getUser()->getMagasin());
         $this->manager->persist($produit);
+        // $produit = $this->serializer->denormalize($request->request->all(),"App\Entity\Produit");
+
+        if (!is_null($request->files->get("produits"))) {
+            $produits = $request->files->get('produits'); 
+        //l'emplacement ou on va enregistrer les fichier
+            $fileFolder = __DIR__ . '/../../public/uploads/'; 
+            $filePathName = md5(uniqid()) . $produits->getClientOriginalName();
+        
+            try {
+                $produits->move($fileFolder, $filePathName);
+            } catch (FileException $e) {
+                dd($e);
+            } 
+
+            //on lit le contenu du fichier excel
+            $spreadsheet = IOFactory::load($fileFolder . $filePathName); 
+            //on recupere le contenu du fichier sous forme de tableau
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+            foreach ($sheetData as $value) {
+                $product = new Produit();
+                $product->setName($value['A']);
+                $product->setPrixUnitaire($value['C']);
+                $product->setQuantite($value['D']);
+                $product->setDescription($value['B']);
+                $product->setAddedBy($this->tokenStorage->getToken()->getUser());
+                $product->setMagasin($this->tokenStorage->getToken()->getUser()->getMagasin());
+                $this->manager->persist($product);
+            } 
+        }
+        
         $this->manager->flush();
         return $this->json($produit, Response::HTTP_CREATED);
         
@@ -88,6 +120,30 @@ class ProduitController extends AbstractController
         $this->manager->flush();
         return $this->json($produit, Response::HTTP_OK);
         
+    }
+
+     /**
+     * @Route("/api/produits/upload",name="xlsx", methods={"POST"})
+     */
+    public function upload(Request $request)
+    {
+        dd("hello");
+        $produits = $request->files->get('produits'); 
+        //l'emplacement ou on va enregistrer les fichier
+        $fileFolder = __DIR__ . '/../../public/uploads/'; 
+        $filePathName = md5(uniqid()) . $produits->getClientOriginalName();
+      
+        try {
+            $produits->move($fileFolder, $filePathName);
+        } catch (FileException $e) {
+            dd($e);
+        } 
+
+        //on lit le contenu du fichier excel
+        $spreadsheet = IOFactory::load($fileFolder . $filePathName); 
+        //on recupere le contenu du fichier sous forme de tableau
+        $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+        dd($sheetData); 
     }
 
 
