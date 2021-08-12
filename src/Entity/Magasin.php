@@ -211,12 +211,14 @@ class Magasin
 
     public function getLogo()
     {
-        return $this->logo;
+        //return $this->logo;
+        return $this->logo!=null?stream_get_contents($this->logo):null;
     }
 
     public function setLogo($logo): self
     {
-        $this->logo = $logo;
+        // $this->logo = $logo;
+        $this->logo = \base64_encode($logo);
 
         return $this;
     }
