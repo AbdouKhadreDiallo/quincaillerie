@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Admin;
 use App\Entity\Produit;
+use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,7 +32,7 @@ class ProduitController extends AbstractController
 
     
     /**
-     * @Route("/api/produits", name="produit")
+     * @Route("/api/produits", methods={"POST"})
      */
     public function addProduit(Request $request)
     {
@@ -59,6 +60,37 @@ class ProduitController extends AbstractController
         return $this->json($produit, Response::HTTP_CREATED);
         
     }
+
+    /**
+     * @Route("/api/produits/{id}", methods={"POST"})
+     */
+    public function updateProduit($id, Request $request, ProduitRepository $productRepository)
+    {
+        $data = $request->request->all();
+        if (!$data && is_null($request->files->get('image'))) {
+            return new JsonResponse("vide", Response::HTTP_FORBIDDEN,[], true);
+        }
+        $produit = $productRepository->find($id);
+        if (!$produit) {
+            return new JsonResponse("not found", Response::HTTP_NOT_FOUND,[], true);
+        }
+        foreach ($data as $key => $value) {
+            if ($key!= "_method") {
+                $FirstMajuscume = "set".ucfirst(strtolower($key));
+                if (method_exists("App\Entity\Produit", $FirstMajuscume)) {
+                    $produit->$FirstMajuscume($value);
+                }
+            }
+        }
+        if (!is_null($request->files->get('image'))) {
+            $produit->setImage($this->uploadfile($request->files->get('image'), $produit->getName()));
+        }
+        $this->manager->flush();
+        return $this->json($produit, Response::HTTP_OK);
+        
+    }
+
+
     public function uploadfile($file, $name)
     {
         $filetype = explode("/", $file->getMimeType())[1];

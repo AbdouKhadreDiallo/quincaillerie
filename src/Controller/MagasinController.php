@@ -36,7 +36,6 @@ class MagasinController extends AbstractController
     public function updateMagasin($id, Request $request)
     {
         $data = $request->request->all();
-        
         // dd($data);
         if (!$data && is_null($request->files->get('logo'))) {
             return new JsonResponse("vide", Response::HTTP_FORBIDDEN,[], true);
@@ -61,7 +60,6 @@ class MagasinController extends AbstractController
         }
         $this->manager->flush();
         return $this->json($magasin, Response::HTTP_OK);
-
 
     }
     public function uploadfile($file, $name)
