@@ -36,7 +36,7 @@ class DepotController extends AbstractController
     public function deposer(Request $request, ClientRepository $clientRepository)
     {
         if (!($this->tokenStorage->getToken()->getUser() instanceof Admin)) {
-            return new JsonResponse("nopp",Response::HTTP_UNAUTHORIZED,[]);
+            return new JsonResponse("non authorisé",Response::HTTP_UNAUTHORIZED,[]);
         }
         $depotJson = $request->getContent();
         $depotTableau = $this->serializer->decode($depotJson, 'json');
@@ -51,9 +51,6 @@ class DepotController extends AbstractController
 
         $this->manager->persist($depot);
         $this->manager->flush();
-        return new JsonResponse("done with sucess",Response::HTTP_OK,[]);
-
-        
-       
+        return new JsonResponse("done with sucess",Response::HTTP_OK,[]); 
     }
 }

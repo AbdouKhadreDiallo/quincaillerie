@@ -7,7 +7,18 @@ use App\Repository\ProduitRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *      collectionOperations={
+ *            "GET", "POST" = {
+ *                  "security" = "is_granted('ROLE_ADMIN')",
+ *             },
+ *      },
+ *      itemOperations = {
+ *          "GET", "PUT", "DELETE" = {
+ *              "security" = "is_granted('ROLE_ADMIN')",
+ *          }
+ *      }
+ * )
  * @ORM\Entity(repositoryClass=ProduitRepository::class)
  */
 class Produit
@@ -48,6 +59,11 @@ class Produit
      * @ORM\ManyToOne(targetEntity=Admin::class, inversedBy="produits")
      */
     private $addedBy;
+
+    /**
+     * @ORM\Column(type="blob", nullable=true)
+     */
+    private $image;
 
     public function getId(): ?int
     {
@@ -122,6 +138,18 @@ class Produit
     public function setAddedBy(?Admin $addedBy): self
     {
         $this->addedBy = $addedBy;
+
+        return $this;
+    }
+
+    public function getImage()
+    {
+        return $this->image!=null?stream_get_contents($this->image):null;
+    }
+
+    public function setImage($image): self
+    {
+        $this->image = \base64_encode($image);
 
         return $this;
     }
