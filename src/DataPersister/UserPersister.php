@@ -4,6 +4,7 @@ namespace App\DataPersister;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
 
 final class UserPersister implements ContextAwareDataPersisterInterface{
     private $entityManager;

@@ -42,27 +42,29 @@ class ProduitController extends AbstractController
             return new JsonResponse("non authorisé",Response::HTTP_UNAUTHORIZED,[]);
         }
         // $produitTab = $this->serializer->decode($request->getContent(), 'json');
-        $prixUnitaire = (int)$request->request->all()["prixUnitaire"];
-        $quantite = (int)$request->request->all()["quantite"];
-        // $request->request->all()["prixUnitaire"] = (int)$prixUnitaire;
-        $produit = new Produit();
-        $produit->setName($request->request->all()['name']);
-        $produit->setPrixUnitaire($prixUnitaire);
-        $produit->setQuantite($quantite);
-        $produit->setDescription($request->request->all()["description"]);
-        $image = $request->files->get("image");
-        if (!is_null($request->files->get("image"))) {
-            // dd("yes");
-            $produit->setImage($this->uploadfile($request->files->get("image"), $produit->getName()));
+        if ($request->request->all()) {
+            $prixUnitaire = (int)$request->request->all()["prixUnitaire"];
+            $quantite = (int)$request->request->all()["quantite"];
+            // $request->request->all()["prixUnitaire"] = (int)$prixUnitaire;
+            $produit = new Produit();
+            $produit->setName($request->request->all()['name']);
+            $produit->setPrixUnitaire($prixUnitaire);
+            $produit->setQuantite($quantite);
+            $produit->setDescription($request->request->all()["description"]);
+            $image = $request->files->get("image");
+            if (!is_null($request->files->get("image"))) {
+                // dd("yes");
+                $produit->setImage($this->uploadfile($request->files->get("image"), $produit->getName()));
+            }
+            $produit->setAddedBy($this->tokenStorage->getToken()->getUser());
+            $produit->setMagasin($this->tokenStorage->getToken()->getUser()->getMagasin());
+            $this->manager->persist($produit);
         }
-        $produit->setAddedBy($this->tokenStorage->getToken()->getUser());
-        $produit->setMagasin($this->tokenStorage->getToken()->getUser()->getMagasin());
-        $this->manager->persist($produit);
+        
         // $produit = $this->serializer->denormalize($request->request->all(),"App\Entity\Produit");
 
         if (!is_null($request->files->get("produits"))) {
             $produits = $request->files->get('produits'); 
-        //l'emplacement ou on va enregistrer les fichier
             $fileFolder = __DIR__ . '/../../public/uploads/'; 
             $filePathName = md5(uniqid()) . $produits->getClientOriginalName();
         
@@ -87,7 +89,6 @@ class ProduitController extends AbstractController
                 $this->manager->persist($product);
             } 
         }
-        
         $this->manager->flush();
         return $this->json($produit, Response::HTTP_CREATED);
         

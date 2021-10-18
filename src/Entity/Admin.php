@@ -3,14 +3,16 @@
 namespace App\Entity;
 
 use App\Entity\User;
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\AdminRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\AdminRepository;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ApiResource(
+ *      normalizationContext={"groups":{"admin:read"}},
  *      collectionOperations={
  *            "GET", "POST" = {
  *                  "security" = "is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERUSER')",
@@ -19,7 +21,12 @@ use Doctrine\ORM\Mapping as ORM;
  *      itemOperations = {
  *          "GET", "PUT", "DELETE" = {
  *              "security" = "is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERUSER')",
- *          }
+ *          },
+ *           "get_connected"={
+ *                  "security" = "is_granted('ROLE_ADMIN')",
+ *                  "method"="GET",
+ *                  "route_name"="connected"
+ *              }
  *      }
  * )
  * @ORM\Entity(repositoryClass=AdminRepository::class)
@@ -30,21 +37,25 @@ class Admin extends User
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"admin:read"})
      */
     protected $id;
 
     /**
      * @ORM\OneToOne(targetEntity=Magasin::class, mappedBy="owner", cascade={"persist", "remove"})
+     * @Groups({"admin:read"})
      */
     private $magasin;
 
     /**
      * @ORM\OneToMany(targetEntity=Produit::class, mappedBy="addedBy")
+     * @Groups({"admin:read"})
      */
     private $produits;
 
     /**
      * @ORM\OneToMany(targetEntity=Depot::class, mappedBy="author")
+     * @Groups({"admin:read"})
      */
     private $depots;
 

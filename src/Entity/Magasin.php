@@ -2,14 +2,17 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\MagasinRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\MagasinRepository;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *      normalizationContext={"groups":{"magasin:read"}},
+ * )
  * @ORM\Entity(repositoryClass=MagasinRepository::class)
  */
 class Magasin
@@ -18,46 +21,55 @@ class Magasin
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"magasin:read","admin:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"magasin:read","admin:read"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"magasin:read","admin:read"})
      */
     private $adress;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
+     * @Groups({"magasin:read","admin:read"})
      */
-    private $isBlocked;
+    private $isBlocked = false;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"magasin:read","admin:read"})
      */
     private $telephone;
 
     /**
      * @ORM\OneToMany(targetEntity=Client::class, mappedBy="magasin")
+     * @Groups({"magasin:read","admin:read"})
      */
     private $clients;
 
     /**
      * @ORM\OneToOne(targetEntity=Admin::class, inversedBy="magasin", cascade={"persist", "remove"})
+     * @Groups({"magasin:read"})
      */
     private $owner;
 
     /**
      * @ORM\ManyToOne(targetEntity=SuperUser::class, inversedBy="magasins")
+     * @Groups({"magasin:read"})
      */
     private $addedBy;
 
     /**
      * @ORM\OneToMany(targetEntity=Produit::class, mappedBy="magasin")
+     * @Groups({"magasin:read","admin:read"})
      */
     private $produits;
 

@@ -2,9 +2,10 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\DepotRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\DepotRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ApiResource(
@@ -33,11 +34,13 @@ class Depot
 
     /**
      * @ORM\Column(type="datetime_immutable")
+     * @Groups({"admin:read"})
      */
     private $doneAt;
 
     /**
      * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="depots")
+     * @Groups({"admin:read"})
      */
     private $client;
 
@@ -48,6 +51,7 @@ class Depot
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"admin:read"})
      */
     private $somme;
 
